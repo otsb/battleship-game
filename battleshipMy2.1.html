@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="x-icon" href="ship.png">
+    <title>Battleship</title>
+    <style>
+        body {
+            background-color: black;
+        }
+
+        div#board {
+            position: relative;
+            width: 1024px;
+            height: 863px;
+            margin: auto;
+            background: url("board.jpg") no-repeat;
+        }
+
+        div#messageArea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: rgb(83, 175, 19);
+            font-size: 2.7em;
+            animation: tiktok-brain 3s ease-in-out alternate-reverse infinite;
+        }
+
+        div#messageArea:empty {
+            color: red;
+        }
+        @keyframes tiktok-brain {
+            from{
+                transform: translateX(4px) ;
+                opacity: 75%;
+            }
+            to{
+                transform: translateX(66px) ;
+                opacity: 100%;
+            }
+        }
+
+        div#statusArea {
+            position: absolute;
+            top: 150px;
+            right: 30px;
+            color: rgb(83, 175, 19);
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        table {
+            position: absolute;
+            left: 173px;
+            top: 98px;
+            border-spacing: 0px;
+        }
+
+        td {
+            width: 94px;
+            height: 94px;
+        }
+
+        td:hover{
+            background: linear-gradient(45deg, red, blue);
+            animation: rotate 0.6s ease-in-out  infinite;
+            border-radius: 60%;
+            opacity: 40%;
+            border-bottom: blue;
+        }
+
+        @keyframes rotate {
+            from{
+                transform: rotate(0deg);
+                opacity: 35%;
+            }
+            to{
+                transform: rotate(360deg);
+                opacity: 40%;
+            }
+        }
+        
+        td:active{
+            background: yellow;
+        }
+
+        form#form-id {
+            position: absolute;
+            bottom: 9px;
+            right: 6px;
+            padding: 10px;
+            background-color: rgb(83, 175, 19);
+            border-radius: 50%;
+        }
+        form#form-id:hover {
+            position: absolute;
+            font-size: 1.3em;
+            bottom: 6px;
+            right: 9px;
+            padding: 10px;
+            background-color: rgb(83, 175, 19);
+            border-radius: 50%;
+            animation: growing 1s alternate-reverse ease-in;
+        }
+        
+        @keyframes growing {
+            from{
+                font-size: 1.3em;
+            }
+            to{
+                font-size: 1em;
+            }
+        }
+
+        form#form-id input#guessInput {
+            height: 2em;
+            width: 2em;
+            font-size: 1em;
+            border-radius: 30%;
+        }
+
+        form#form-id input#fireButton {
+            height: 2em;
+            background-color: rgb(152, 207, 113);
+            border-color: rgb(83, 175, 19);
+            font-size: 1em;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+        
+        form#form-id input#fireButton:hover {
+            background: linear-gradient(red, yellow);
+            color: white;
+            border-color: rgb(83, 175, 19);
+            font-weight: bold;
+            border-radius: 50%;
+            animation: firebtn 1.4s infinite alternate ease-in-out;
+        }
+        @keyframes firebtn {
+            from{
+                color: #ffee00;
+                background: red;
+            }
+            to{
+                color: red;
+                background: #ffee00;
+            }
+        }
+
+        input#restartButton {
+            position: absolute;
+            top: 50px;
+            right: 0px;
+            padding: 15px;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            font-size: medium;
+            font-weight: bold;
+            border-radius: 40%;
+            background: gray;
+        }
+
+        input#restartButton:hover {
+            position: absolute;
+            top: 50px;
+            right: 0px;
+            padding: 15px;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            font-size: medium;
+            font-weight: bold;
+            border-radius: 40%;
+            background: gray;
+            animation: tilt 1.1s infinite alternate-reverse ease-in-out;
+        }
+        @keyframes tilt {
+            from{
+                background: rgb(153, 127, 127);
+                transform: rotate(-4deg);
+                padding: 15px;   
+            }
+            to{
+                background: rgb(95, 85, 85);
+                transform: rotate(5deg);
+                padding: 17px;
+            }
+        }
+
+        .hit {
+            background: url(ship.png) no-repeat center center;
+            animation: slide 3s ease-in;
+            transform: translateX(40px) 3s;
+        }
+        @keyframes slide {
+            from{
+                font-size: 3em;
+                opacity: 75%;
+            }
+            to{
+                font-size: 1em;
+                opacity: 100%;
+            }
+        }
+        .miss {
+            background: url(miss.png) no-repeat center center;
+            animation: slide 3s ease-in;
+            transform: translateX(40px) 3s;
+        }
+        @keyframes slide {
+            from{
+                font-size: 3em;
+                opacity: 75%;
+            }
+            to{
+                font-size: 1em;
+                opacity: 100%;
+            }
+        }
+        .gameEnd{
+            opacity: 50%;
+            background-color: aliceblue;
+        }
+        .sinkTheStinky{
+            opacity: 30%;
+        }
+        .sunk{
+            opacity: 30%;
+            background: url(ship.png) no-repeat center center;
+            background-color: brown;
+        }
+    </style>
+</head>
+<body>
+    <div id="board">
+        <div id="messageArea">
+
+        </div>
+        <div id="statusArea">
+
+        </div>
+        <table id="table">
+            <tr>
+                <td id="00" onclick="cellClicked('A0')"></td>
+                <td id="01" onclick="cellClicked('A1')"></td>
+                <td id="02" onclick="cellClicked('A2')"></td>
+                <td id="03" onclick="cellClicked('A3')"></td>
+                <td id="04" onclick="cellClicked('A4')"></td>
+                <td id="05" onclick="cellClicked('A5')"></td>
+                <td id="06" onclick="cellClicked('A6')"></td>
+            </tr>
+            <tr>
+                <td id="10" onclick="cellClicked('B0')"></td>
+                <td id="11" onclick="cellClicked('B1')"></td>
+                <td id="12" onclick="cellClicked('B2')"></td>
+                <td id="13" onclick="cellClicked('B3')"></td>
+                <td id="14" onclick="cellClicked('B4')"></td>
+                <td id="15" onclick="cellClicked('B5')"></td>
+                <td id="16" onclick="cellClicked('B6')"></td>
+            </tr>
+            <tr>
+                <td id="20" onclick="cellClicked('C0')"></td>
+                <td id="21" onclick="cellClicked('C1')"></td>
+                <td id="22" onclick="cellClicked('C2')"></td>
+                <td id="23" onclick="cellClicked('C3')"></td>
+                <td id="24" onclick="cellClicked('C4')"></td>
+                <td id="25" onclick="cellClicked('C5')"></td>
+                <td id="26" onclick="cellClicked('C6')"></td>
+            </tr>
+            <tr>
+                <td id="30" onclick="cellClicked('D0')"></td>
+                <td id="31" onclick="cellClicked('D1')"></td>
+                <td id="32" onclick="cellClicked('D2')"></td>
+                <td id="33" onclick="cellClicked('D3')"></td>
+                <td id="34" onclick="cellClicked('D4')"></td>
+                <td id="35" onclick="cellClicked('D5')"></td>
+                <td id="36" onclick="cellClicked('D6')"></td>
+            </tr>
+            <tr>
+                <td id="40" onclick="cellClicked('E0')"></td>
+                <td id="41" onclick="cellClicked('E1')"></td>
+                <td id="42" onclick="cellClicked('E2')"></td>
+                <td id="43" onclick="cellClicked('E3')"></td>
+                <td id="44" onclick="cellClicked('E4')"></td>
+                <td id="45" onclick="cellClicked('E5')"></td>
+                <td id="46" onclick="cellClicked('E6')"></td>
+            </tr>
+            <tr>
+                <td id="50" onclick="cellClicked('F0')"></td>
+                <td id="51" onclick="cellClicked('F1')"></td>
+                <td id="52" onclick="cellClicked('F2')"></td>
+                <td id="53" onclick="cellClicked('F3')"></td>
+                <td id="54" onclick="cellClicked('F4')"></td>
+                <td id="55" onclick="cellClicked('F5')"></td>
+                <td id="56" onclick="cellClicked('F6')"></td>
+            </tr>
+            <tr>
+                <td id="60" onclick="cellClicked('G0')"></td>
+                <td id="61" onclick="cellClicked('G1')"></td>
+                <td id="62" onclick="cellClicked('G2')"></td>
+                <td id="63" onclick="cellClicked('G3')"></td>
+                <td id="64" onclick="cellClicked('G4')"></td>
+                <td id="65" onclick="cellClicked('G5')"></td>
+                <td id="66" onclick="cellClicked('G6')"></td>
+            </tr>
+        </table>
+        <form id="form-id" action="">
+        <input type="text" id="guessInput" placeholder="A0">
+        <input type="button" id="fireButton" value="Fire!">
+        </form>
+        
+        <input type="button" id="restartButton" value="Restart">
+    </div>
+
+    <script src="battleshipMy.js"></script>
+    <script>
+        
+var view = {
+
+// this method takes a string and display it in
+// the display message area.
+
+displayMessage: function(msg) {
+    var messageArea = document.getElementById("messageArea");
+    messageArea.innerHTML = msg;
+},
+
+// this method taskes a guess of a location and sets
+// an attribute class with the value "hit"
+displayHit : function(location) {
+    var cell = document.getElementById(location)
+    cell.setAttribute("class", "hit")
+},
+
+// this method taskes a guess of a location and sets
+// an attribute class with the value "miss"
+displayMiss: function(location) {
+    var cell = document.getElementById(location)
+    cell.setAttribute("class", "miss")
+},
+
+// this method displays the current status
+// of the sunk ships on the status area.
+displayStatus: function(stat) {
+    var statusArea = document.getElementById("statusArea");
+    statusArea.innerHTML = stat;
+},
+
+// this method displays the locations of the ships
+// that has been sunk
+displaySunk: function(locations) {
+    for (var i = 0; i < locations.length; i++) {
+        var cell = document.getElementById(locations[i]);
+        cell.setAttribute("class", "sunk"); 
+    }
+}
+};
+
+
+var model = {
+boardsize: 7,
+numShips: 3,
+shipLength: 3,
+shipsSunk: 0,
+
+ships: [
+    { locations: [0, 0, 0], hits: ["", "", ""] },
+    { locations: [0, 0, 0], hits: ["", "", ""] },
+    { locations: [0, 0, 0], hits: ["", "", ""] }
+],
+
+fire: function(guess) {
+    for (var i = 0; i < this.numShips; i++) {
+        var ship = this.ships[i];
+        var index = ship.locations.indexOf(guess);
+
+        if (index >= 0) {
+            ship.hits[index] = "hit";
+            view.displayHit(guess);
+            view.displayMessage("HIT!");
+            view.displayStatus("ships sunk: " + model.shipsSunk)
+
+            if (this.isSunk(ship)) {
+                view.displayMessage("You sank my battleship!");
+                this.shipsSunk++;
+                view.displayStatus("ships sunk: " + model.shipsSunk)
+                view.displaySunk(ship.locations)
+            }
+            return true;
+        }
+    }
+    view.displayMiss(guess);
+    view.displayMessage("You missed.");
+    view.displayStatus("ships sunk: " + model.shipsSunk)
+    return false;
+},
+
+isSunk: function(ship) {
+    for (var i = 0; i < this.shipLength; i++) {
+        if (ship.hits[i] !== "hit") {
+            return false;
+        }
+    }
+    return true;
+},
+
+generateShipLocations: function() {
+    var locations;
+    for (var i = 0; i < this.numShips; i++) {
+        do {
+            locations = this.generateShip();
+        } while (this.collision(locations));
+        this.ships[i].locations = locations;
+    }
+},
+
+
+generateShip: function() {
+    var direction = Math.floor(Math.random() * 2);
+    var row, col;
+
+    if (direction === 1) {
+        // Generate a starting location for a horizontal ship
+        row = Math.floor(Math.random() * this.boardsize);
+        col = Math.floor(Math.random() * (this.boardsize - this.shipLength)); 
+    }
+    else {
+        // Generate a starting location for a vertical ship
+        row = Math.floor(Math.random() * (this.boardsize - this.shipLength)); 
+        col = Math.floor(Math.random() * this.boardsize);
+    }
+    
+    var newShipLocations = [];
+    for (var i = 0; i < this.shipLength; i++) {
+        if (direction === 1) {
+            // add location to array for new forizontal ship
+            newShipLocations.push(row + "" + (col + i));
+        }
+        else {
+            // add location to array for new vertical ship
+            newShipLocations.push((row + i) + "" + col);
+        }
+    }
+    return newShipLocations;
+},
+
+
+collision: function(locations) {
+    for (var i = 0; i < this.numShips; i++) {
+        var ship = model.ships[i];
+        for (var j = 0; j < locations.length; j++) {
+            if (ship.locations.indexOf(locations[j]) >= 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+};
+
+
+var restartButton = document.getElementById("restartButton");
+restartButton.addEventListener("click", function() {
+    location.reload();
+});
+
+var controller = {
+    guesses: 0,
+guessedLocations: [],
+
+processGuess: function(guess) {
+    if (model.shipsSunk === model.numShips) {
+        view.displayMessage("All ships sunk. Game Over!")
+        return;
+    }
+    var location = parseGuess(guess);
+    if (location) {
+        if (this.guessedLocations.indexOf(location) !== -1) {
+            alert("You Guessed this cell already!");
+            return;
+        }
+        this.guessedLocations.push(location);
+        this.guesses++;
+        var hit = model.fire(location);
+        if (hit && model.shipsSunk === model.numShips) {
+            view.displayMessage("You sunk all my battleships, in " + this.guesses + " guesses.\n"+ "\nAccuracy: " + Math.floor(((model.shipLength*model.numShips)/this.guesses)*100) + "%");
+            console.log("all ships sank");
+            var gameEnd = document.getElementById("table")
+            gameEnd.setAttribute("class", "gameEnd")
+            guessInput.disabled = true;
+        }
+    }
+}
+
+}
+
+
+
+function parseGuess(guess) {
+var alphabet = ["A", "B", "C", "D", "E", "F", "G"];
+
+if (guess == null || guess.length !== 2) {
+    alert("oops, please enter a letter and a number on the board.");
+}
+else {
+    var firstChar = guess.charAt(0);
+    var row = alphabet.indexOf(firstChar);
+    var column = guess.charAt(1);
+
+    if (isNaN(row) || isNaN(column)) {
+        alert("oops, that isn't on the board.");
+    }
+    else if (row < 0 || row >= model.boardsize || column < 0 || column >= model.boardsize) {
+        alert("oops, that's off the board!")
+    }
+    else {
+        return row + column;
+    }
+}
+return null;
+}
+
+
+function handleFireButton() {
+    var guessInput = document.getElementById("guessInput");
+    var guess = guessInput.value;
+    controller.processGuess(guess);
+
+    guessInput.value = "";
+}
+
+function handleKeyPress(e) {
+    var fireButton = document.getElementById("fireButton");
+        if (e.keyCode === 13) {
+            fireButton.click();
+            return false;
+        }
+}
+
+function cellClicked(cellId) {
+    var guessInput = document.getElementById("guessInput");
+    guessInput.value = cellId;
+    controller.processGuess(cellId)
+}
+
+
+
+window.onload = init;
+
+function init() {
+var fireButton = document.getElementById("fireButton");
+fireButton.onclick = handleFireButton;
+var guessInput = document.getElementById("guessInput");
+guessInput.onkeypress = handleKeyPress;
+
+model.generateShipLocations();
+}
+
+    </script>
+</body>
+</html>
